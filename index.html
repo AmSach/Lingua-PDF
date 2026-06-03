@@ -1,0 +1,2333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lingua v23</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── Reset & Design Tokens ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:    #07070d;
+  --sf:    #0e0e18;
+  --card:  #13131e;
+  --bd:    rgba(255,255,255,0.07);
+  --bhi:   rgba(255,255,255,0.13);
+  --tx:    #f0eff7;
+  --mu:    rgba(240,239,247,0.42);
+  --ac:    #6c5ce7;
+  --gl:    rgba(108,92,231,0.18);
+  --ac2:   #a78bfa;
+  --ac3:   #818cf8;
+  --gn:    #00d68f;
+  --wa:    #f59e0b;
+  --rd:    #ef4444;
+  --mono:  'DM Mono', monospace;
+  --sans:  'Syne', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--tx);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+header {
+  padding: .9rem 1.5rem;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  position: sticky;
+  top: 0;
+  background: rgba(7,7,13,.92);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -.04em;
+  background: linear-gradient(135deg, #6c5ce7, #a78bfa, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: .58rem;
+  padding: 2px 9px;
+  border-radius: 20px;
+  border: 1px solid rgba(167,139,250,.3);
+  color: var(--ac2);
+  background: rgba(108,92,231,.1);
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--mu);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mu);
+  transition: all .3s;
+}
+.status-dot.live { background: var(--gn); box-shadow: 0 0 6px var(--gn); }
+
+/* ── Layout ── */
+main {
+  flex: 1;
+  padding: 1.2rem 1.5rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Stats Bar ── */
+.stats-bar {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: .75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+.stats-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(108,92,231,.06), transparent);
+  pointer-events: none;
+}
+
+.stat-item { text-align: center; min-width: 76px; }
+.stat-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--tx);
+  letter-spacing: -.02em;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: .58rem;
+  color: var(--mu);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.stat-divider { width: 1px; height: 28px; background: var(--bd); flex-shrink: 0; }
+
+.provider-pills { flex: 1; display: flex; gap: 5px; flex-wrap: wrap; }
+
+.ppill {
+  font-family: var(--mono);
+  font-size: .58rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--bd);
+  color: var(--mu);
+  transition: all .25s;
+  white-space: nowrap;
+  cursor: default;
+}
+.ppill.ok     { border-color: var(--gn);  color: var(--gn);  background: rgba(0,214,143,.07); }
+.ppill.active { border-color: var(--ac2); color: var(--ac2); background: rgba(167,139,250,.1); animation: pill-blink .7s infinite; }
+.ppill.err    { border-color: var(--rd);  color: var(--rd);  opacity: .4; }
+
+@keyframes pill-blink { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+/* ── Language Bar ── */
+.lang-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: .85rem;
+}
+
+select {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  color: var(--tx);
+  padding: 8px 28px 8px 10px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: .78rem;
+  cursor: pointer;
+  flex: 1;
+  max-width: 185px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.35)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  transition: border-color .2s;
+}
+select:focus { outline: none; border-color: var(--ac); }
+
+.swap-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  color: var(--mu);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.swap-btn:hover { border-color: var(--ac); color: var(--ac); transform: rotate(180deg); }
+
+.lang-bar-note {
+  font-family: var(--mono);
+  font-size: .61rem;
+  color: var(--mu);
+  margin-left: 4px;
+}
+
+/* ── Text Area Grid ── */
+.text-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: .75rem;
+}
+
+.text-box {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color .2s;
+}
+.text-box:focus-within { border-color: rgba(108,92,231,.4); }
+
+.text-box-header {
+  padding: 7px 11px;
+  border-bottom: 1px solid var(--bd);
+  font-size: .65rem;
+  font-family: var(--mono);
+  color: var(--mu);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+textarea {
+  background: transparent;
+  border: none;
+  color: var(--tx);
+  font-family: var(--sans);
+  font-size: .88rem;
+  line-height: 1.65;
+  padding: 11px;
+  resize: none;
+  min-height: 155px;
+  flex: 1;
+  width: 100%;
+}
+textarea:focus       { outline: none; }
+textarea::placeholder { color: var(--mu); }
+
+.translation-output {
+  padding: 11px;
+  font-size: .88rem;
+  line-height: 1.65;
+  min-height: 155px;
+  color: var(--tx);
+  flex: 1;
+  white-space: pre-wrap;
+}
+.placeholder-text { color: var(--mu); font-style: italic; }
+
+.text-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--bd);
+}
+
+/* ── Buttons ── */
+.btn {
+  background: linear-gradient(135deg, var(--ac), var(--ac3));
+  color: #fff;
+  border: none;
+  padding: 9px 22px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: .83rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: .01em;
+}
+.btn:hover    { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(108,92,231,.35); }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid var(--bd);
+  color: var(--mu);
+  padding: 8px 13px;
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: .66rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.ghost-btn:hover { border-color: var(--bhi); color: var(--tx); }
+
+/* ── Neural Viz (loading animation) ── */
+.viz-loader {
+  display: none;
+  margin: .7rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--bd);
+  background: var(--sf);
+  position: relative;
+}
+.viz-loader.active { display: block; }
+
+.viz-canvas-wrap { position: relative; width: 100%; height: 90px; }
+.viz-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+
+.viz-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+}
+.viz-label { font-family: var(--mono); font-size: .68rem; color: var(--tx); text-shadow: 0 0 8px rgba(108,92,231,.8); }
+.viz-sub   { font-family: var(--mono); font-size: .58rem; color: var(--mu); }
+
+.viz-bar-wrap  { padding: 6px 14px 10px; border-top: 1px solid var(--bd); }
+.viz-bar-track { background: rgba(255,255,255,.05); border-radius: 4px; height: 4px; overflow: hidden; border: 1px solid var(--bd); }
+.viz-bar-fill  {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ac), var(--ac2), var(--ac3));
+  border-radius: 4px;
+  transition: width .2s ease;
+  width: 0%;
+  box-shadow: 0 0 8px rgba(167,139,250,.5);
+}
+.viz-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-family: var(--mono);
+  font-size: .58rem;
+  color: var(--mu);
+}
+
+/* ── Section Label ── */
+.section-label {
+  font-family: var(--mono);
+  font-size: .65rem;
+  color: var(--mu);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: .6rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--bd); }
+
+/* ── Font Picker ── */
+.font-bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: .85rem;
+  flex-wrap: wrap;
+}
+.font-bar.show { display: flex; }
+
+/* ── Drop Zone ── */
+.drop-zone {
+  border: 2px dashed var(--bhi);
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.drop-zone:hover,
+.drop-zone.over { border-color: var(--ac); background: var(--gl); }
+.drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+
+.dz-icon    { font-size: 2rem; margin-bottom: .5rem; opacity: .38; }
+.dz-title   { font-size: .9rem; font-weight: 500; margin-bottom: .22rem; }
+.dz-subtitle { font-size: .68rem; color: var(--mu); font-family: var(--mono); }
+
+/* ── File Queue ── */
+.file-queue { display: flex; flex-direction: column; gap: .5rem; margin-top: .8rem; }
+
+.file-row {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: .7rem .9rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  transition: border-color .2s;
+}
+.file-row.running { border-color: rgba(167,139,250,.4); }
+.file-row.done    { border-color: rgba(0,214,143,.35); }
+.file-row.err     { border-color: rgba(239,68,68,.35); }
+
+.file-row-icon  { font-size: 1.2rem; flex-shrink: 0; line-height: 1; }
+.file-row-info  { flex: 1; min-width: 0; }
+.file-row-name  { font-size: .8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-row-sub   { font-family: var(--mono); font-size: .6rem; color: var(--mu); margin-top: 2px; }
+.file-row-bar   { height: 3px; background: rgba(255,255,255,.07); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.file-row-fill  { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--ac), var(--ac2)); transition: width .25s; width: 0%; }
+.file-row-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--gn);
+  color: #07070d;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-family: var(--sans);
+  font-size: .7rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.download-btn:hover  { opacity: .85; }
+.download-btn.alt    { background: var(--ac2); color: #07070d; }
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--mu);
+  font-size: .75rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+}
+.remove-btn:hover { color: var(--rd); }
+
+/* ── Queue Actions ── */
+.queue-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .65rem;
+  flex-wrap: wrap;
+}
+.queue-summary { font-family: var(--mono); font-size: .63rem; color: var(--mu); margin-left: auto; }
+
+.dl-all-btn {
+  background: linear-gradient(135deg, var(--ac), var(--ac3));
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: .78rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  transition: all .2s;
+}
+.dl-all-btn:hover   { opacity: .9; transform: translateY(-1px); }
+.dl-all-btn.show    { display: inline-flex; }
+
+.clear-btn {
+  background: transparent;
+  border: 1px solid var(--bd);
+  color: var(--mu);
+  padding: 7px 13px;
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: .63rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.clear-btn:hover { border-color: var(--bhi); color: var(--tx); }
+
+/* ── Console / Log ── */
+.log-box   { margin-top: 1.3rem; border: 1px solid var(--bd); border-radius: 11px; overflow: hidden; }
+.log-header {
+  padding: 7px 11px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--sf);
+}
+.log-title { font-family: var(--mono); font-size: .63rem; color: var(--mu); display: flex; align-items: center; gap: 6px; }
+.log-dot   { width: 5px; height: 5px; border-radius: 50%; background: var(--mu); transition: all .25s; }
+.log-dot.on { background: var(--gn); box-shadow: 0 0 5px var(--gn); }
+
+.log-count { font-family: var(--mono); font-size: .58rem; color: rgba(240,239,247,.18); }
+.log-clear-btn {
+  background: none;
+  border: 1px solid var(--bd);
+  color: var(--mu);
+  font-family: var(--mono);
+  font-size: .58rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.log-clear-btn:hover { color: var(--tx); border-color: var(--bhi); }
+
+#log {
+  height: 180px;
+  overflow-y: auto;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: .65rem;
+  line-height: 1.85;
+}
+#log::-webkit-scrollbar       { width: 3px; }
+#log::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 2px; }
+
+.log-line { display: flex; gap: 7px; align-items: baseline; }
+.log-ts   { color: rgba(240,239,247,.14); flex-shrink: 0; min-width: 76px; }
+.log-msg  { word-break: break-all; }
+.log-msg.i  { color: rgba(240,239,247,.68); }
+.log-msg.ok { color: var(--gn); }
+.log-msg.w  { color: var(--wa); }
+.log-msg.e  { color: var(--rd); }
+.log-msg.h  { color: var(--ac2); }
+.log-msg.d  { color: rgba(240,239,247,.25); }
+
+/* ── Spinner ── */
+.spin {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(255,255,255,.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .55s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+  .text-grid { grid-template-columns: 1fr; }
+  main   { padding: .9rem; }
+  header { padding: .8rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Lingua</div>
+  <span class="badge">v23 · NEURAL ENGINE</span>
+  <div class="header-right">
+    <div class="status-dot" id="sdot"></div>
+    <span id="stxt">Initializing</span>
+  </div>
+</header>
+
+<main>
+  <!-- Stats / Provider Bar -->
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-value" id="tv-rps">—</div><div class="stat-label">str/sec</div></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><div class="stat-value" id="tv-done">0</div><div class="stat-label">translated</div></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><div class="stat-value" id="tv-cache">0</div><div class="stat-label">cached</div></div>
+    <div class="stat-divider"></div>
+    <div class="provider-pills">
+      <span class="ppill" id="pill-gt1">GT/primary</span>
+      <span class="ppill" id="pill-gt2">GT/alt</span>
+      <span class="ppill" id="pill-mm">MyMemory</span>
+      <span class="ppill" id="pill-lt1">LT·terraprint</span>
+      <span class="ppill" id="pill-lt4">LT·eral</span>
+      <span class="ppill" id="pill-lt5">LT·astian</span>
+      <span class="ppill" id="pill-lv1">Lingva·garuda</span>
+      <span class="ppill" id="pill-lv2">Lingva·ducks</span>
+      <span class="ppill" id="pill-lv3">Lingva·plaus</span>
+      <span class="ppill" id="pill-ap1">Apertium</span>
+    </div>
+  </div>
+
+  <!-- Shared Language Bar -->
+  <div class="lang-bar">
+    <select id="srcLang"></select>
+    <button class="swap-btn" onclick="swapLangs()" title="Swap">⇄</button>
+    <select id="tgtLang"></select>
+    <span class="lang-bar-note" id="langNote"></span>
+  </div>
+
+  <!-- ══ TEXT TRANSLATION ══ -->
+  <div class="section-label">Text</div>
+  <div class="text-grid">
+    <div class="text-box">
+      <div class="text-box-header">
+        <span>Source</span>
+        <span id="cc" style="font-family:var(--mono);font-size:.63rem;color:var(--mu)">0/5000</span>
+      </div>
+      <textarea
+        id="srcText"
+        placeholder="Enter text to translate…"
+        maxlength="5000"
+        oninput="document.getElementById('cc').textContent=this.value.length+'/5000'"
+      ></textarea>
+    </div>
+    <div class="text-box">
+      <div class="text-box-header">
+        <span>Translation</span>
+        <span id="wprov" style="font-family:var(--mono);font-size:.59rem;color:var(--mu)"></span>
+      </div>
+      <div class="translation-output" id="outText">
+        <span class="placeholder-text">Translation will appear here…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Neural Viz Loader -->
+  <div class="viz-loader" id="tViz">
+    <div class="viz-canvas-wrap">
+      <canvas id="tCanvas"></canvas>
+      <div class="viz-overlay">
+        <div class="viz-label" id="tVizLabel">Racing providers…</div>
+        <div class="viz-sub"   id="tVizSub"></div>
+      </div>
+    </div>
+    <div class="viz-bar-wrap">
+      <div class="viz-bar-track"><div class="viz-bar-fill" id="tpbar"></div></div>
+      <div class="viz-footer"><span id="tplbl"></span><span id="tpeta"></span></div>
+    </div>
+  </div>
+
+  <div class="text-actions">
+    <button class="btn" id="xlBtn" onclick="translateText()">Translate</button>
+    <button class="ghost-btn" onclick="navigator.clipboard.writeText(document.getElementById('outText').textContent)">Copy</button>
+    <button class="ghost-btn" onclick="clearTextTranslation()">Clear</button>
+  </div>
+
+  <!-- ══ FILE TRANSLATION ══ -->
+  <div class="section-label">Files — PDF · DOCX · DOC · EPUB · TXT · ODT</div>
+
+  <!-- Font Picker (shown when a PDF is queued) -->
+  <div class="font-bar" id="fontBar">
+    <span style="font-family:var(--mono);font-size:.66rem;color:var(--mu);white-space:nowrap">PDF output font:</span>
+    <select id="fontPick" style="background:var(--card);border:1px solid var(--bd);color:var(--tx);padding:6px 28px 6px 10px;border-radius:7px;font-family:var(--sans);font-size:.78rem;cursor:pointer;flex:1;max-width:230px;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27rgba(255,255,255,0.35)%27 d=%27M6 8L1 3h10z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 9px center">
+      <option value="TimesRoman">Times New Roman (matches original)</option>
+      <option value="Helvetica">Helvetica</option>
+      <option value="Courier">Courier</option>
+      <option value="noto-serif">Noto Serif (non-Latin scripts)</option>
+      <option value="noto-sans">Noto Sans</option>
+    </select>
+    <span id="fontNote" style="font-family:var(--mono);font-size:.61rem;color:var(--mu)"></span>
+  </div>
+
+  <div class="drop-zone" id="mainDz">
+    <input type="file" id="mainInput" accept=".pdf,.docx,.doc,.epub,.txt,.odt" multiple onchange="addFiles(this.files)">
+    <div class="dz-icon">📂</div>
+    <div class="dz-title">Drop files here or tap to browse</div>
+    <div class="dz-subtitle">Any mix · single or multiple · headings/bold/italic preserved · clean readable reflow</div>
+  </div>
+
+  <div class="queue-actions" id="queueActs" style="display:none">
+    <button class="btn" id="runBtn" onclick="runQueue()">▶ Translate</button>
+    <button class="dl-all-btn" id="dlAllBtn" onclick="downloadAll()">⬇ Download All</button>
+    <button class="clear-btn" onclick="clearQueue()">✕ Clear</button>
+    <span class="queue-summary" id="queueSummary"></span>
+  </div>
+
+  <div class="file-queue" id="fileQueue"></div>
+
+  <!-- Console -->
+  <div class="log-box">
+    <div class="log-header">
+      <div class="log-title">
+        <span class="log-dot" id="ldot"></span>
+        CONSOLE
+        <span class="log-count" id="lcnt">0 events</span>
+      </div>
+      <button class="log-clear-btn" onclick="clearLog()">clear</button>
+    </div>
+    <div id="log">
+      <div class="log-line">
+        <span class="log-ts">--:--:--.---</span>
+        <span class="log-msg d">Lingua v23 · unified interface · clean PDF reflow · headings/bold/italic preserved · 10 providers.</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════════════════════
+//  LINGUA v23  —  unified single-page interface
+//  No tabs. Text at top, file queue below. One language bar for both.
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Language definitions ───────────────────────────────────────────────
+const LANGS = [
+  ['auto','Auto-detect'],['en','English'],['fr','French'],['de','German'],
+  ['es','Spanish'],['it','Italian'],['pt','Portuguese'],['ru','Russian'],
+  ['zh-CN','Chinese (Simplified)'],['zh-TW','Chinese (Traditional)'],
+  ['ja','Japanese'],['ko','Korean'],['ar','Arabic'],['hi','Hindi'],
+  ['bn','Bengali'],['tr','Turkish'],['vi','Vietnamese'],['th','Thai'],
+  ['pl','Polish'],['nl','Dutch'],['sv','Swedish'],['uk','Ukrainian'],
+  ['cs','Czech'],['ro','Romanian'],['hu','Hungarian'],['he','Hebrew'],
+  ['id','Indonesian'],['ms','Malay'],['el','Greek'],['bg','Bulgarian'],
+  ['sk','Slovak'],['hr','Croatian'],['lt','Lithuanian'],['lv','Latvian'],
+  ['et','Estonian'],['sr','Serbian'],['ta','Tamil'],['te','Telugu'],
+  ['ur','Urdu'],['fa','Persian'],['sw','Swahili'],['af','Afrikaans'],
+  ['ne','Nepali'],['ca','Catalan'],['fi','Finnish'],['da','Danish'],
+  ['no','Norwegian'],['sl','Slovenian'],['is','Icelandic'],['az','Azerbaijani'],
+];
+
+function buildLanguageSelect(id, skipAuto = false) {
+  document.getElementById(id).innerHTML = LANGS
+    .filter(([v]) => !skipAuto || v !== 'auto')
+    .map(([v, l]) => `<option value="${v}">${l}</option>`)
+    .join('');
+}
+
+buildLanguageSelect('srcLang');
+buildLanguageSelect('tgtLang', true);
+document.getElementById('tgtLang').value = 'fr';
+
+window.swapLangs = () => {
+  const src = document.getElementById('srcLang');
+  const tgt = document.getElementById('tgtLang');
+  if (src.value !== 'auto') [src.value, tgt.value] = [tgt.value, src.value];
+};
+
+window.clearTextTranslation = () => {
+  document.getElementById('srcText').value = '';
+  document.getElementById('outText').innerHTML = '<span class="placeholder-text">Translation will appear here…</span>';
+  document.getElementById('cc').textContent = '0/5000';
+};
+
+// ── Console / Log ──────────────────────────────────────────────────────
+let logEventCount = 0;
+
+function log(msg, level = 'i') {
+  logEventCount++;
+  const logEl = document.getElementById('log');
+  const now = new Date();
+  const timestamp = `${now.toTimeString().slice(0, 8)}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-ts">${timestamp}</span><span class="log-msg ${level}">${String(msg).replace(/</g, '&lt;')}</span>`;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('lcnt').textContent = `${logEventCount} event${logEventCount !== 1 ? 's' : ''}`;
+
+  const dot = document.getElementById('ldot');
+  dot.classList.add('on');
+  clearTimeout(dot._t);
+  dot._t = setTimeout(() => dot.classList.remove('on'), 500);
+}
+
+window.clearLog = () => {
+  logEventCount = 0;
+  document.getElementById('log').innerHTML = '<div class="log-line"><span class="log-ts">--:--:--.---</span><span class="log-msg d">Cleared.</span></div>';
+  document.getElementById('lcnt').textContent = '0 events';
+};
+
+// ── Dashboard / Stats ──────────────────────────────────────────────────
+function setPill(id, cssClass) {
+  const el = document.getElementById('pill-' + id);
+  if (el) el.className = 'ppill ' + cssClass;
+}
+
+let statsTranslated = 0, statsCache = 0, statsStartMs = 0, statsInterval = null;
+
+function statsTickUpdate() {
+  if (!statsStartMs) return;
+  const elapsed = (performance.now() - statsStartMs) / 1000;
+  document.getElementById('tv-rps').textContent = elapsed > 0.5 ? (Math.round(statsTranslated / elapsed) || '—') : '—';
+  document.getElementById('tv-done').textContent = statsTranslated;
+  document.getElementById('tv-cache').textContent = statsCache;
+}
+
+function statsStart() {
+  statsStartMs = performance.now();
+  statsInterval = setInterval(statsTickUpdate, 300);
+}
+
+function statsStop() {
+  clearInterval(statsInterval);
+  statsTickUpdate();
+}
+
+function setStatus(text, isLive = false) {
+  document.getElementById('stxt').textContent = text;
+  document.getElementById('sdot').classList.toggle('live', isLive);
+}
+
+setStatus('Probing…');
+
+// ══════════════════════════════════════════════════════════════════════
+//  NEURAL NETWORK CANVAS ANIMATION
+// ══════════════════════════════════════════════════════════════════════
+class NeuralViz {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx    = this.canvas.getContext('2d');
+    this.nodes  = [];
+    this.particles = [];
+    this.raf     = null;
+    this.spawnT  = null;
+    this.running = false;
+    this._resize();
+    this._buildNodes();
+  }
+
+  _resize() {
+    const rect = this.canvas.parentElement.getBoundingClientRect();
+    this.canvas.width  = rect.width * devicePixelRatio;
+    this.canvas.height = 90 * devicePixelRatio;
+    this.W = this.canvas.width;
+    this.H = this.canvas.height;
+  }
+
+  _buildNodes() {
+    const layout = [
+      [.12,.5],[.28,.25],[.28,.75],[.5,.15],[.5,.5],[.5,.85],[.72,.25],[.72,.75],[.88,.5]
+    ];
+    this.nodes = layout.map(([xr, yr], i) => ({
+      x: xr * this.W, y: yr * this.H,
+      r: 4 * devicePixelRatio,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.03 + Math.random() * .02,
+      active: false, pulse: 0, idx: i,
+    }));
+    this.edges = [[0,1],[0,2],[1,3],[1,4],[2,4],[2,5],[3,6],[4,6],[4,7],[5,7],[6,8],[7,8]];
+  }
+
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this._spawnParticle();
+    this._loop();
+  }
+
+  stop() {
+    this.running = false;
+    if (this.raf)    cancelAnimationFrame(this.raf);
+    if (this.spawnT) clearTimeout(this.spawnT);
+    this.ctx.clearRect(0, 0, this.W, this.H);
+  }
+
+  _spawnParticle() {
+    if (!this.running) return;
+    const [a, b] = this.edges[Math.floor(Math.random() * this.edges.length)];
+    const na = this.nodes[a], nb = this.nodes[b];
+    this.particles.push({ x: na.x, y: na.y, tx: nb.x, ty: nb.y, t: 0, dur: 30 + Math.random() * 30, nidx: b });
+    this.spawnT = setTimeout(() => this._spawnParticle(), 80 + Math.random() * 120);
+  }
+
+  _loop() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.W, this.H);
+    const t = performance.now() / 1000;
+
+    // Draw edges
+    ctx.lineWidth = devicePixelRatio * .6;
+    for (const [a, b] of this.edges) {
+      const na = this.nodes[a], nb = this.nodes[b];
+      const alpha = 0.08 + Math.sin(t + na.phase) * .03;
+      ctx.strokeStyle = `rgba(108,92,231,${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(na.x, na.y);
+      ctx.lineTo(nb.x, nb.y);
+      ctx.stroke();
+    }
+
+    // Draw and update particles
+    this.particles = this.particles.filter(p => {
+      p.t++;
+      const progress = p.t / p.dur;
+      if (progress >= 1) { this.nodes[p.nidx].pulse = 1; return false; }
+
+      const srcNode = this.nodes[this.edges.find(e => e[1] === p.nidx)?.[0] ?? 0];
+      p.x = srcNode.x * (1 - progress) + p.tx * progress;
+      p.y = srcNode.y * (1 - progress) + p.ty * progress;
+
+      const size  = (2 + Math.sin(progress * Math.PI) * 3) * devicePixelRatio;
+      const alpha = Math.sin(progress * Math.PI);
+      const grad  = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 2);
+      grad.addColorStop(0, `rgba(167,139,250,${alpha})`);
+      grad.addColorStop(1, 'rgba(167,139,250,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, size * 2, 0, Math.PI * 2);
+      ctx.fill();
+      return true;
+    });
+
+    // Draw nodes
+    for (const n of this.nodes) {
+      n.pulse = Math.max(0, n.pulse - 0.04);
+      const glow = .3 + Math.sin(t * n.speed + n.phase) * .2 + n.pulse * .5;
+      const r    = n.r * (1 + n.pulse * .5);
+
+      const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r * 4);
+      grad.addColorStop(0,  `rgba(167,139,250,${glow})`);
+      grad.addColorStop(.5, `rgba(108,92,231,${glow * .4})`);
+      grad.addColorStop(1,  'rgba(108,92,231,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r * 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(200,190,255,${.5 + n.pulse * .5})`;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (this.running) this.raf = requestAnimationFrame(() => this._loop());
+  }
+}
+
+const textViz = new NeuralViz('tCanvas');
+
+function vizShow(id) { document.getElementById(id).classList.add('active'); }
+function vizHide(id) { document.getElementById(id).classList.remove('active'); }
+function setProgressBar(barId, pct) { const el = document.getElementById(barId); if (el) el.style.width = pct + '%'; }
+
+// ── IndexedDB Translation Cache ────────────────────────────────────────
+const TranslationCache = (() => {
+  let db = null;
+
+  async function openDb() {
+    if (db) return db;
+    db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open('lingua23', 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore('t', { keyPath: 'k' });
+      req.onsuccess = e => resolve(e.target.result);
+      req.onerror   = () => reject(req.error);
+    });
+    const count = await countEntries();
+    statsCache = count;
+    document.getElementById('tv-cache').textContent = count;
+    log(`IDB: ${count} cached entries`, 'ok');
+    return db;
+  }
+
+  async function countEntries() {
+    return new Promise(resolve => {
+      const tx = db.transaction('t', 'readonly');
+      tx.objectStore('t').count().onsuccess = e => resolve(e.target.result);
+    });
+  }
+
+  const makeKey = (text, srcLang, tgtLang) => `${srcLang}|${tgtLang}|${text}`;
+
+  async function getMany(texts, srcLang, tgtLang) {
+    const store = (await openDb()).transaction('t', 'readonly').objectStore('t');
+    const out = {};
+    await Promise.all(texts.map(text => new Promise(resolve => {
+      const req = store.get(makeKey(text, srcLang, tgtLang));
+      req.onsuccess = () => { if (req.result) out[text] = req.result.v; resolve(); };
+      req.onerror   = resolve;
+    })));
+    return out;
+  }
+
+  async function setMany(pairs, srcLang, tgtLang) {
+    if (!pairs.length) return;
+    const tx = (await openDb()).transaction('t', 'readwrite');
+    const store = tx.objectStore('t');
+    for (const [text, val] of pairs) store.put({ k: makeKey(text, srcLang, tgtLang), v: val });
+    await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = reject; });
+    const count = await countEntries();
+    statsCache = count;
+    document.getElementById('tv-cache').textContent = count;
+  }
+
+  return { getMany, setMany };
+})();
+
+// ── Skip filter (don't translate pure punctuation/numbers/URLs) ────────
+const SKIP_RE = /^[\d\s.,;:!?()\[\]{}\-+=%@#$^&*|/<>~`'"\\]+$|^.{1,2}$|^https?:\/\//;
+const shouldSkip = text => !text || SKIP_RE.test(text.trim());
+
+// ══════════════════════════════════════════════════════════════════════
+//  TRANSLATION PROVIDERS
+// ══════════════════════════════════════════════════════════════════════
+
+// ── Google Translate ───────────────────────────────────────────────────
+// Primary endpoint batches texts using a Unicode sentinel separator
+// that survives GT translation, allowing reliable per-item splitting.
+const GT_SENTINEL  = '\u2060|\u2060'; // word-joiner + pipe: visually invisible, survives GT
+const GT_BATCH_MAX = 40;
+const GT_CONCURRENCY = 30;
+
+/**
+ * Extracts a string value from the various shapes the GT secondary endpoint returns.
+ */
+function extractGtSecondaryValue(responseJson) {
+  const v = responseJson;
+  if (typeof v === 'string')                               return v.trim();
+  if (Array.isArray(v)) {
+    if (typeof v[0] === 'string')                          return v[0].trim();
+    if (Array.isArray(v[0]) && typeof v[0][0] === 'string') return v[0][0].trim();
+    if (v[0] && typeof v[0] === 'object' && !Array.isArray(v[0]))
+      return (v[0].t || v[0].trans || v[0].translation || '').trim();
+  }
+  if (v && typeof v === 'object' && !Array.isArray(v))
+    return (v.t || v.trans || v.translation || '').trim();
+  return '';
+}
+
+async function gtBatchRequest(texts, srcLang, tgtLang, endpoint, signal) {
+  const src = srcLang === 'auto' ? 'auto' : srcLang;
+
+  if (endpoint === 'secondary') {
+    // Secondary endpoint doesn't batch reliably; translate individually
+    const out = {};
+    await Promise.all(texts.map(async text => {
+      try {
+        const url = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=${encodeURIComponent(src)}&tl=${encodeURIComponent(tgtLang)}&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url, { signal });
+        if (!res.ok) return;
+        const val = extractGtSecondaryValue(await res.json());
+        if (val && val !== text) out[text] = val;
+      } catch { /* absorb per-item failures */ }
+    }));
+    return out;
+  }
+
+  // Primary: join texts with sentinel, translate as one block, split back
+  const joined = texts.join(GT_SENTINEL + '\n');
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(src)}&tl=${encodeURIComponent(tgtLang)}&dt=t&q=${encodeURIComponent(joined)}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`GT${res.status}`);
+
+  const json = await res.json();
+  let full = '';
+  if (Array.isArray(json) && Array.isArray(json[0])) {
+    full = json[0].map(c => (Array.isArray(c) ? c[0] : '') || '').join('');
+  }
+  if (!full) throw new Error('empty');
+
+  const out = {};
+  const parts = full.split(/\u2060\|\u2060\s*/);
+  for (let i = 0; i < texts.length; i++) {
+    const val = (parts[i] || '').trim();
+    if (val && val !== texts[i]) out[texts[i]] = val;
+  }
+
+  // Fallback: plain newline split if sentinel was stripped by GT
+  if (!Object.keys(out).length) {
+    const lines = full.split('\n');
+    for (let i = 0; i < texts.length; i++) {
+      const val = (lines[i] || '').trim();
+      if (val && val !== texts[i]) out[texts[i]] = val;
+    }
+  }
+  return out;
+}
+
+async function gtTranslateAll(texts, srcLang, tgtLang, endpointId) {
+  const pillId = endpointId === 'primary' ? 'gt1' : 'gt2';
+  setPill(pillId, 'active');
+  const t0 = performance.now();
+  const out = {};
+
+  // Chunk texts into batches, then run batches with limited concurrency
+  const batches = [];
+  for (let i = 0; i < texts.length; i += GT_BATCH_MAX) batches.push(texts.slice(i, i + GT_BATCH_MAX));
+
+  for (let i = 0; i < batches.length; i += GT_CONCURRENCY) {
+    const settled = await Promise.allSettled(
+      batches.slice(i, i + GT_CONCURRENCY).map(batch =>
+        gtBatchRequest(batch, srcLang, tgtLang, endpointId, AbortSignal.timeout(14000))
+      )
+    );
+    for (const r of settled) { if (r.status === 'fulfilled') Object.assign(out, r.value); }
+  }
+
+  const n = Object.keys(out).length;
+  setPill(pillId, n > 0 ? 'ok' : 'err');
+  log(`GT-${endpointId}: ${n}/${texts.length} in ${Math.round(performance.now() - t0)}ms`, n > 0 ? 'ok' : 'w');
+  return out;
+}
+
+// ── LibreTranslate ─────────────────────────────────────────────────────
+const LT_INSTANCES = [
+  { id: 'lt1', url: 'https://libretranslate.terraprint.co/translate' },
+  { id: 'lt4', url: 'https://lt.er.al/translate' },
+  { id: 'lt5', url: 'https://translate.astian.org/translate' },
+];
+const ltAlive = { lt1: true, lt4: true, lt5: true };
+const ltLangCode = c => c === 'auto' ? 'auto' : c.split('-')[0];
+
+async function ltTranslateOne(text, srcLang, tgtLang, instance, signal) {
+  if (!ltAlive[instance.id]) throw new Error('disabled');
+  const res = await fetch(instance.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal,
+    body: JSON.stringify({ q: text, source: ltLangCode(srcLang), target: ltLangCode(tgtLang), format: 'text' }),
+  });
+  if (!res.ok) {
+    if ([400, 403, 429, 503].includes(res.status)) ltAlive[instance.id] = false;
+    throw new Error(`LT${res.status}`);
+  }
+  const json = await res.json();
+  if (json.error) { ltAlive[instance.id] = false; throw new Error(json.error); }
+  const val = json.translatedText;
+  if (!val || val === text) throw new Error('empty');
+  return val;
+}
+
+async function ltTranslateAll(texts, srcLang, tgtLang) {
+  const alive = LT_INSTANCES.filter(i => ltAlive[i.id]);
+  if (!alive.length) return {};
+  alive.forEach(i => setPill(i.id, 'active'));
+  const out = {};
+  const CONCURRENCY = 20;
+
+  // Round-robin distribute texts across alive instances
+  const jobs = texts.map((text, idx) => ({ text, instance: alive[idx % alive.length] }));
+
+  for (let i = 0; i < jobs.length; i += CONCURRENCY * alive.length) {
+    const chunk = jobs.slice(i, i + CONCURRENCY * alive.length);
+    const settled = await Promise.allSettled(
+      chunk.map(j => ltTranslateOne(j.text, srcLang, tgtLang, j.instance, AbortSignal.timeout(10000)).then(v => [j.text, v]))
+    );
+    for (const r of settled) { if (r.status === 'fulfilled' && r.value[1]) out[r.value[0]] = r.value[1]; }
+  }
+
+  alive.forEach(i => setPill(i.id, Object.keys(out).length > 0 ? 'ok' : 'err'));
+  return out;
+}
+
+// ── MyMemory ───────────────────────────────────────────────────────────
+let mmFailCount = 0;
+
+function mmLangCode(code) {
+  if (code === 'auto') return 'en';
+  const parts = code.split('-');
+  return parts.length > 1 ? `${parts[0]}-${parts[1].toUpperCase()}` : code;
+}
+
+async function mmTranslateOne(text, srcLang, tgtLang, signal) {
+  if (mmFailCount > 5) throw new Error('MM quota');
+  if (text.length > 500) throw new Error('MM too long');
+  const langPair = `${mmLangCode(srcLang)}|${mmLangCode(tgtLang)}`;
+  const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(langPair)}`, { signal });
+  if (!res.ok) { mmFailCount++; throw new Error(`MM${res.status}`); }
+  const json = await res.json();
+  if (json.responseStatus !== 200 && json.responseStatus !== 206) { mmFailCount++; throw new Error(`MM${json.responseStatus}`); }
+  const val = json.responseData?.translatedText;
+  if (!val || val === text || val === 'PLEASE SELECT TWO DISTINCT LANGUAGES') throw new Error('MM empty');
+  return val;
+}
+
+async function mmTranslateAll(texts, srcLang, tgtLang) {
+  if (mmFailCount > 5) { setPill('mm', 'err'); return {}; }
+  setPill('mm', 'active');
+  const out = {};
+  const CONCURRENCY = 8;
+  const eligible = texts.filter(t => t.length <= 500);
+
+  for (let i = 0; i < eligible.length; i += CONCURRENCY) {
+    const chunk = eligible.slice(i, i + CONCURRENCY);
+    const settled = await Promise.allSettled(chunk.map(t => mmTranslateOne(t, srcLang, tgtLang, AbortSignal.timeout(8000))));
+    chunk.forEach((text, j) => { if (settled[j].status === 'fulfilled') out[text] = settled[j].value; });
+  }
+
+  setPill('mm', Object.keys(out).length > 0 ? 'ok' : 'err');
+  return out;
+}
+
+// ── Lingva ─────────────────────────────────────────────────────────────
+const LINGVA_INSTANCES = [
+  { id: 'lv1', url: 'https://lingva.garudalinux.org' },
+  { id: 'lv2', url: 'https://lingva.ducks.party' },
+  { id: 'lv3', url: 'https://translate.plausibility.cloud' },
+];
+const lvAlive = { lv1: true, lv2: true, lv3: true };
+
+async function lingvaTranslateOne(text, srcLang, tgtLang, instance, signal) {
+  if (!lvAlive[instance.id]) throw new Error('dead');
+  const src = srcLang === 'auto' ? 'auto' : srcLang;
+  const res = await fetch(`${instance.url}/api/v1/${src}/${tgtLang}/${encodeURIComponent(text)}`, { signal });
+  if (!res.ok) { lvAlive[instance.id] = false; throw new Error(`LV${res.status}`); }
+  const json = await res.json();
+  const val = json.translation || json.result || json.translated || '';
+  if (!val || val === text) throw new Error('LV empty');
+  return val;
+}
+
+async function lingvaTranslateAll(texts, srcLang, tgtLang) {
+  const alive = LINGVA_INSTANCES.filter(i => lvAlive[i.id]);
+  if (!alive.length) return {};
+  alive.forEach(i => setPill(i.id, 'active'));
+  const out = {};
+  const CONCURRENCY = 12;
+  const jobs = texts.map((text, idx) => ({ text, instance: alive[idx % alive.length] }));
+
+  for (let i = 0; i < jobs.length; i += CONCURRENCY) {
+    const settled = await Promise.allSettled(
+      jobs.slice(i, i + CONCURRENCY).map(j =>
+        lingvaTranslateOne(j.text, srcLang, tgtLang, j.instance, AbortSignal.timeout(9000)).then(v => [j.text, v])
+      )
+    );
+    for (const r of settled) { if (r.status === 'fulfilled' && r.value[1]) out[r.value[0]] = r.value[1]; }
+  }
+
+  alive.forEach(i => setPill(i.id, Object.keys(out).length > 0 ? 'ok' : 'err'));
+  return out;
+}
+
+// ── Apertium ───────────────────────────────────────────────────────────
+// Maps ISO-639-1 codes to Apertium's ISO-639-3 codes
+const APERTIUM_LANG_MAP = {
+  en:'eng',ru:'rus',es:'spa',fr:'fra',de:'deu',pt:'por',it:'ita',nl:'nld',
+  ca:'cat',uk:'ukr',bg:'bul',hr:'hrv',sr:'srp',bs:'bos',mk:'mkd',
+  is:'isl',af:'afr',eo:'epo',ga:'gle',cy:'cym',
+};
+let apertiumDead = false;
+
+function getApertiumPair(srcLang, tgtLang) {
+  const s = APERTIUM_LANG_MAP[srcLang === 'auto' ? 'en' : srcLang];
+  const t = APERTIUM_LANG_MAP[tgtLang];
+  return (s && t) ? `${s}|${t}` : null;
+}
+
+async function apertiumTranslateOne(text, srcLang, tgtLang, signal) {
+  if (apertiumDead) throw new Error('dead');
+  const pair = getApertiumPair(srcLang, tgtLang);
+  if (!pair) throw new Error('unsupported');
+  const res = await fetch(`https://www.apertium.org/apy/translate?q=${encodeURIComponent(text)}&langpair=${pair}`, { signal });
+  if (!res.ok) { if (res.status >= 400 && res.status < 500) apertiumDead = true; throw new Error(`AP${res.status}`); }
+  const json = await res.json();
+  const val = (json?.responseData?.translatedText || '').trim();
+  if (!val || val === text || val.includes('ERROR:')) throw new Error('empty');
+  return val;
+}
+
+// ── Provider Health Probe ──────────────────────────────────────────────
+async function probeAllProviders(srcLang, tgtLang) {
+  const testText = 'Hello world';
+  const src = srcLang === 'auto' ? 'en' : srcLang;
+  log('Probing providers…', 'i');
+
+  await Promise.allSettled([
+    gtBatchRequest([testText], src, tgtLang, 'primary',   AbortSignal.timeout(6000)).then(() => { setPill('gt1', 'ok'); log('GT/primary ✓', 'ok'); }).catch(e => { setPill('gt1', 'err'); log('GT/primary: ' + e.message, 'w'); }),
+    gtBatchRequest([testText], src, tgtLang, 'secondary', AbortSignal.timeout(6000)).then(() => { setPill('gt2', 'ok'); log('GT/alt ✓', 'ok'); }).catch(e => { setPill('gt2', 'err'); log('GT/alt: ' + e.message, 'w'); }),
+    ...LT_INSTANCES.map(inst =>
+      ltTranslateOne(testText, src, tgtLang, inst, AbortSignal.timeout(7000))
+        .then(() => { setPill(inst.id, 'ok'); log(`${inst.id} ✓`, 'ok'); })
+        .catch(e => { ltAlive[inst.id] = false; setPill(inst.id, 'err'); log(`${inst.id}: ${e.message}`, 'w'); })
+    ),
+    mmTranslateOne(testText, src, tgtLang, AbortSignal.timeout(6000)).then(() => { setPill('mm', 'ok'); log('MyMemory ✓', 'ok'); }).catch(e => { setPill('mm', 'err'); log('MM: ' + e.message, 'w'); }),
+    ...LINGVA_INSTANCES.map(inst =>
+      lingvaTranslateOne(testText, src, tgtLang, inst, AbortSignal.timeout(7000))
+        .then(() => { setPill(inst.id, 'ok'); log(`${inst.id} ✓`, 'ok'); })
+        .catch(e => { lvAlive[inst.id] = false; setPill(inst.id, 'err'); log(`${inst.id}: ${e.message}`, 'w'); })
+    ),
+    apertiumTranslateOne(testText, src, tgtLang, AbortSignal.timeout(7000)).then(() => { setPill('ap1', 'ok'); log('Apertium ✓', 'ok'); }).catch(e => { setPill('ap1', 'err'); log('Apertium: ' + e.message, 'w'); }),
+  ]);
+
+  const aliveCount = document.querySelectorAll('.ppill.ok').length;
+  log(`Probe done — ${aliveCount} providers alive`, 'ok');
+  setStatus(`${aliveCount} providers`, true);
+}
+
+probeAllProviders('en', 'fr');
+
+// ══════════════════════════════════════════════════════════════════════
+//  MASTER TRANSLATION ENGINE
+// ══════════════════════════════════════════════════════════════════════
+
+/**
+ * Translates an array of unique texts using all available providers.
+ * Phase 1: Google Translate (primary + secondary) in parallel.
+ * Phase 2: Remaining texts sent to LT, MyMemory, Lingva, and Apertium.
+ */
+async function translateAll(uniqueTexts, srcLang, tgtLang, onProgress) {
+  if (!uniqueTexts.length) return {};
+
+  const cached = await TranslationCache.getMany(uniqueTexts, srcLang, tgtLang);
+  const cacheHitCount = Object.keys(cached).length;
+  const uncached = uniqueTexts.filter(t => !cached[t]);
+  statsCache = cacheHitCount;
+  log(`Cache: ${cacheHitCount} hits · ${uncached.length} to translate`, 'ok');
+  if (!uncached.length) { if (onProgress) onProgress(uniqueTexts.length, uniqueTexts.length); return cached; }
+
+  statsStart();
+  statsTranslated = 0;
+  const results = { ...cached };
+
+  // Phase 1: Google Translate (both endpoints race)
+  log('Phase 1: GT batch × 2…', 'h');
+  const [gt1Results, gt2Results] = await Promise.all([
+    gtTranslateAll(uncached, srcLang, tgtLang, 'primary'),
+    gtTranslateAll(uncached, srcLang, tgtLang, 'secondary'),
+  ]);
+  // gt1 wins ties over gt2 (primary is generally more reliable)
+  Object.assign(results, gt2Results, gt1Results);
+
+  const afterGT = uncached.filter(t => !results[t]);
+  statsTranslated = uncached.length - afterGT.length;
+  if (onProgress) onProgress(cacheHitCount + statsTranslated, uniqueTexts.length);
+  log(`Phase 1: ${statsTranslated}/${uncached.length} · ${afterGT.length} remaining`, 'i');
+
+  // Phase 2: Fallback providers for anything GT missed
+  if (afterGT.length > 0) {
+    log(`Phase 2: LT+MM+Lingva+AP for ${afterGT.length}…`, 'h');
+
+    const apertiumBatch = async () => {
+      if (apertiumDead || !getApertiumPair(srcLang, tgtLang)) { setPill('ap1', 'err'); return {}; }
+      setPill('ap1', 'active');
+      const out = {};
+      const CONCURRENCY = 8;
+      for (let i = 0; i < afterGT.length; i += CONCURRENCY) {
+        const chunk = afterGT.slice(i, i + CONCURRENCY);
+        const settled = await Promise.allSettled(chunk.map(t => apertiumTranslateOne(t, srcLang, tgtLang, AbortSignal.timeout(8000))));
+        chunk.forEach((text, j) => { if (settled[j].status === 'fulfilled' && settled[j].value) out[text] = settled[j].value; });
+      }
+      setPill('ap1', Object.keys(out).length > 0 ? 'ok' : 'err');
+      return out;
+    };
+
+    const [ltRes, mmRes, lvRes, apRes] = await Promise.all([
+      ltTranslateAll(afterGT, srcLang, tgtLang),
+      mmTranslateAll(afterGT, srcLang, tgtLang),
+      lingvaTranslateAll(afterGT, srcLang, tgtLang),
+      apertiumBatch(),
+    ]);
+
+    // Priority order: LT > MM > Lingva > Apertium (highest quality last wins)
+    Object.assign(results, apRes, lvRes, mmRes, ltRes);
+
+    const still = afterGT.filter(t => !results[t]);
+    statsTranslated = uncached.length - still.length;
+    if (onProgress) onProgress(cacheHitCount + statsTranslated, uniqueTexts.length);
+    log(`Phase 2: ${uncached.length - still.length}/${uncached.length} · ${still.length} failed`, 'ok');
+  }
+
+  statsStop();
+  const newPairs = uncached.filter(t => results[t] && results[t] !== t).map(t => [t, results[t]]);
+  if (newPairs.length) TranslationCache.setMany(newPairs, srcLang, tgtLang);
+  return results;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  TEXT TRANSLATION
+// ══════════════════════════════════════════════════════════════════════
+window.translateText = async function () {
+  const text   = document.getElementById('srcText').value.trim();
+  if (!text) return;
+  const srcLang = document.getElementById('srcLang').value;
+  const tgtLang = document.getElementById('tgtLang').value;
+  if (srcLang !== 'auto' && srcLang === tgtLang) { alert('Same language!'); return; }
+
+  const btn = document.getElementById('xlBtn');
+  const out = document.getElementById('outText');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Translating…';
+  out.textContent = '';
+  vizShow('tViz');
+  textViz.start();
+  setProgressBar('tpbar', 15);
+  document.getElementById('tVizLabel').textContent = 'Racing providers…';
+  document.getElementById('tplbl').textContent = 'Requesting…';
+  log(`Text: ${srcLang}→${tgtLang}, ${text.length} chars`, 'h');
+
+  const t0 = performance.now();
+  try {
+    let result = null;
+
+    // Fast path: race both GT endpoints
+    try {
+      setProgressBar('tpbar', 30);
+      result = await Promise.race([
+        gtBatchRequest([text], srcLang, tgtLang, 'primary',   AbortSignal.timeout(8000)).then(m => { const v = m[text]; if (!v) throw new Error('empty'); return v; }),
+        gtBatchRequest([text], srcLang, tgtLang, 'secondary', AbortSignal.timeout(8000)).then(m => { const v = m[text]; if (!v) throw new Error('empty'); return v; }),
+      ]);
+    } catch {
+      log('GT fast-path failed, running full engine…', 'w');
+      document.getElementById('tVizLabel').textContent = 'Trying all providers…';
+    }
+
+    // Full engine fallback
+    if (!result) {
+      setProgressBar('tpbar', 45);
+      const map = await translateAll([text], srcLang, tgtLang, (done, total) => {
+        setProgressBar('tpbar', Math.round(45 + (done / total) * 50));
+        document.getElementById('tVizLabel').textContent = `Provider ${done}/${total}`;
+      });
+      result = map[text] || null;
+    }
+
+    setProgressBar('tpbar', 100);
+    out.textContent = result || '[No translation returned]';
+    const elapsed = Math.round(performance.now() - t0);
+    document.getElementById('wprov').textContent = `~${elapsed}ms`;
+    document.getElementById('tVizLabel').textContent = 'Done!';
+    document.getElementById('tplbl').textContent = `Done in ${elapsed}ms`;
+    log(`Done in ${elapsed}ms`, 'ok');
+    if (result) TranslationCache.setMany([[text, result]], srcLang, tgtLang);
+  } catch (e) {
+    out.textContent = '[All providers failed — check console]';
+    log('All providers failed: ' + e.message, 'e');
+  }
+
+  textViz.stop();
+  btn.disabled = false;
+  btn.textContent = 'Translate';
+  setTimeout(() => vizHide('tViz'), 1200);
+};
+
+// ══════════════════════════════════════════════════════════════════════
+//  PDF HELPERS  (bold / italic / underline / strikethrough preserved)
+// ══════════════════════════════════════════════════════════════════════
+
+// Maps target language codes to the appropriate Noto font variant
+const SCRIPT_FONTS = {
+  ja:'noto-sans-cjk', ko:'noto-sans-cjk', 'zh-CN':'noto-sans-cjk', 'zh-TW':'noto-sans-cjk',
+  ar:'noto-sans-arabic', fa:'noto-sans-arabic', ur:'noto-sans-arabic', he:'noto-sans-arabic',
+  hi:'noto-sans-devanagari', ne:'noto-sans-devanagari',
+  ta:'noto-sans-tamil', te:'noto-sans-telugu', bn:'noto-sans-bengali', th:'noto-sans-thai',
+};
+
+const FONT_URLS = {
+  'noto-serif':              'https://cdn.jsdelivr.net/npm/@fontsource/noto-serif@5.0.7/files/noto-serif-latin-400-normal.woff2',
+  'noto-sans':               'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.12/files/noto-sans-latin-400-normal.woff2',
+  'noto-sans-cjk':           'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.0.4/files/noto-sans-sc-chinese-simplified-400-normal.woff',
+  'noto-sans-arabic':        'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic@5.0.4/files/noto-sans-arabic-arabic-400-normal.woff',
+  'noto-sans-devanagari':    'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari@5.0.4/files/noto-sans-devanagari-devanagari-400-normal.woff',
+  'noto-sans-tamil':         'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tamil@5.0.4/files/noto-sans-tamil-tamil-400-normal.woff',
+  'noto-sans-telugu':        'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-telugu@5.0.4/files/noto-sans-telugu-telugu-400-normal.woff',
+  'noto-sans-bengali':       'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-bengali@5.0.4/files/noto-sans-bengali-bengali-400-normal.woff',
+  'noto-sans-thai':          'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-thai@5.0.4/files/noto-sans-thai-thai-400-normal.woff',
+};
+
+const fontCache = {};
+
+function detectFontStyle(fontName) {
+  const fn = (fontName || '').toLowerCase();
+  return {
+    bold:          fn.includes('bold')   || fn.includes('heavy') || fn.includes('black'),
+    italic:        fn.includes('italic') || fn.includes('oblique') || fn.includes('slant'),
+    underline:     fn.includes('underline') || fn.includes('underscor'),
+    strikethrough: fn.includes('strike') || fn.includes('strikethru'),
+  };
+}
+
+function detectPdfFontFamily(textItems) {
+  const counts = {};
+  for (const item of textItems) {
+    const fn = (item.fontName || '').replace(/[^A-Za-z]/g, '').toLowerCase();
+    if (fn) counts[fn] = (counts[fn] || 0) + 1;
+  }
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  if (!top) return null;
+  const fn = top[0];
+  if (fn.includes('times') || fn.includes('georgia'))               return 'times';
+  if (fn.includes('helvetica') || fn.includes('arial') || fn.includes('sans')) return 'sans';
+  if (fn.includes('courier') || fn.includes('mono'))                return 'mono';
+  return 'serif';
+}
+
+function autoSelectFont(detectedFamily, targetLang) {
+  const pick = document.getElementById('fontPick');
+  const note = document.getElementById('fontNote');
+  document.getElementById('fontBar').classList.add('show');
+  if (SCRIPT_FONTS[targetLang]) {
+    pick.value = 'noto-sans';
+    note.textContent = 'Special script — Noto Sans.';
+  } else if (detectedFamily === 'times' || detectedFamily === 'georgia' || detectedFamily === 'serif') {
+    pick.value = 'TimesRoman';
+    note.textContent = 'Matched serif.';
+  } else if (detectedFamily === 'mono') {
+    pick.value = 'Courier';
+    note.textContent = 'Matched monospace.';
+  } else {
+    pick.value = 'Helvetica';
+    note.textContent = 'Sans-serif.';
+  }
+}
+
+async function embedPdfFonts(pdfDoc, StandardFonts, targetLang) {
+  const baseFontName = document.getElementById('fontPick').value || 'TimesRoman';
+
+  // Special-script languages need a Noto font; fall back to Helvetica on embed failure
+  if (SCRIPT_FONTS[targetLang]) {
+    const fontKey = SCRIPT_FONTS[targetLang];
+    const url = FONT_URLS[fontKey] || FONT_URLS['noto-sans'];
+    let bytes = fontCache[fontKey];
+    if (!bytes) {
+      try { bytes = await (await fetch(url)).arrayBuffer(); fontCache[fontKey] = bytes; } catch { /* use fallback */ }
+    }
+    let font;
+    try { font = await pdfDoc.embedFont(bytes); } catch { font = await pdfDoc.embedFont(StandardFonts.Helvetica); }
+    return { regular: font, bold: font, italic: font, boldItalic: font };
+  }
+
+  // Standard PDF fonts
+  const stdFamilies = {
+    TimesRoman: { regular: StandardFonts.TimesRoman, bold: StandardFonts.TimesRomanBold, italic: StandardFonts.TimesRomanItalic, boldItalic: StandardFonts.TimesRomanBoldItalic },
+    Helvetica:  { regular: StandardFonts.Helvetica,  bold: StandardFonts.HelveticaBold,  italic: StandardFonts.HelveticaOblique,  boldItalic: StandardFonts.HelveticaBoldOblique },
+    Courier:    { regular: StandardFonts.Courier,     bold: StandardFonts.CourierBold,    italic: StandardFonts.CourierOblique,    boldItalic: StandardFonts.CourierBoldOblique },
+  };
+  // Strip variant suffixes to look up the family
+  const familyKey = baseFontName.replace('Bold', '').replace('Italic', '').replace('BoldItalic', '');
+  const family = stdFamilies[familyKey] || stdFamilies.TimesRoman;
+  const [regular, bold, italic, boldItalic] = await Promise.all([
+    pdfDoc.embedFont(family.regular),
+    pdfDoc.embedFont(family.bold),
+    pdfDoc.embedFont(family.italic),
+    pdfDoc.embedFont(family.boldItalic),
+  ]);
+  return { regular, bold, italic, boldItalic };
+}
+
+/** Selects the best variant of an embedded font set for the given style flags. */
+function pickFontVariant(fonts, style) {
+  if (style.bold && style.italic) return fonts.boldItalic || fonts.bold || fonts.regular;
+  if (style.bold)                  return fonts.bold  || fonts.regular;
+  if (style.italic)                return fonts.italic || fonts.regular;
+  return fonts.regular;
+}
+
+/** Measures text width; falls back to a rough character-based estimate on failure. */
+function measureTextWidth(str, fontSize, font) {
+  try { return font.widthOfTextAtSize(str, fontSize); } catch { return str.length * fontSize * 0.52; }
+}
+
+/** Wraps text to fit within colWidth, returning an array of line strings. */
+function wrapText(text, fontSize, colWidth, font) {
+  const words = text.split(/\s+/);
+  const lines = [];
+  let currentLine = '';
+  for (const word of words) {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    if (measureTextWidth(candidate, fontSize, font) <= colWidth) {
+      currentLine = candidate;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
+/**
+ * Extracts text items from every page, strips header/footer zones and
+ * bare page-number lines, and groups items into logical lines.
+ */
+async function extractPdfPages(pdfDoc) {
+  const allPageData  = [];
+  const allFontSizes = [];
+  let detectedFamily = null;
+  const numPages = pdfDoc.numPages;
+
+  for (let p = 1; p <= numPages; p++) {
+    const page = await pdfDoc.getPage(p);
+    const vp   = page.getViewport({ scale: 1 });
+    const pgW  = vp.width;
+    const pgH  = vp.height;
+
+    // Header/footer exclusion zones: top 9% and bottom 9% of page height (PDF y=0 is bottom)
+    const headerZoneY = pgH * 0.91;
+    const footerZoneY = pgH * 0.09;
+
+    const textContent = await page.getTextContent();
+    const rawItems = textContent.items.filter(i => i.str?.trim());
+    if (p === 1 && !detectedFamily) detectedFamily = detectPdfFontFamily(rawItems);
+
+    // Group items by Y coordinate (rounded to nearest pixel, with ±3px tolerance)
+    const lineMap = new Map();
+    for (const item of rawItems) {
+      const itemY = item.transform[5];
+      if (itemY > headerZoneY || itemY < footerZoneY) continue; // strip header/footer zones
+
+      const y = Math.round(itemY);
+      let key = null;
+      for (const k of lineMap.keys()) { if (Math.abs(k - y) < 3) { key = k; break; } }
+      if (key === null) { key = y; lineMap.set(key, []); }
+      lineMap.get(key).push(item);
+    }
+
+    // Build line objects from grouped items
+    const lines = [];
+    for (const [y, lineItems] of lineMap) {
+      lineItems.sort((a, b) => a.transform[4] - b.transform[4]); // sort left-to-right
+
+      let text = '';
+      for (let i = 0; i < lineItems.length; i++) {
+        if (i > 0 && lineItems[i - 1].hasEOL) {
+          text += ' ';
+        } else if (i > 0) {
+          const gap = lineItems[i].transform[4] - (lineItems[i - 1].transform[4] + lineItems[i - 1].width);
+          if (gap > lineItems[i - 1].width * 0.3) text += ' ';
+        }
+        text += lineItems[i].str;
+      }
+      text = text.replace(/\s+/g, ' ').trim();
+      if (!text) continue;
+
+      // Skip bare page-number lines (digits optionally surrounded by dashes/spaces)
+      if (/^[\s\u2013\u2014-]*\d{1,4}[\s\u2013\u2014-]*$/.test(text)) continue;
+
+      const fz = Math.round(Math.max(Math.abs(lineItems[0].transform[0]), Math.abs(lineItems[0].transform[3]), 6) * 10) / 10;
+      const x  = lineItems[0].transform[4];
+
+      // Determine dominant font style by majority vote across the line's items
+      const styleVotes = { bold: 0, italic: 0, underline: 0, strikethrough: 0, total: 0 };
+      for (const item of lineItems) {
+        const s = detectFontStyle(item.fontName);
+        if (s.bold)          styleVotes.bold++;
+        if (s.italic)        styleVotes.italic++;
+        if (s.underline)     styleVotes.underline++;
+        if (s.strikethrough) styleVotes.strikethrough++;
+        styleVotes.total++;
+      }
+      const threshold = Math.max(styleVotes.total * 0.4, 1);
+      const fontStyle = {
+        bold:          styleVotes.bold          >= threshold,
+        italic:        styleVotes.italic        >= threshold,
+        underline:     styleVotes.underline     >= threshold,
+        strikethrough: styleVotes.strikethrough >= threshold,
+        raw: lineItems[0].fontName || '',
+      };
+
+      lines.push({ y, x, fz, text, fontStyle, pgW, pgH });
+      if (!shouldSkip(text) && fz >= 6 && fz <= 72) allFontSizes.push(fz);
+    }
+
+    lines.sort((a, b) => b.y - a.y); // top-to-bottom reading order
+
+    // Detect the dominant left margin (body text x position) via binning
+    const xBins = {};
+    for (const ln of lines) { const bin = Math.round(ln.x / 4) * 4; xBins[bin] = (xBins[bin] || 0) + 1; }
+    const dominantX = Number(Object.entries(xBins).sort((a, b) => b[1] - a[1])[0]?.[0] || 54);
+
+    // Classify centered lines (chapter titles, epigraphs) vs indented body text.
+    // Rule: xMin > pgW*0.22 AND indent > 55pt from body margin AND ≤15 words.
+    for (const ln of lines) {
+      const indentOffset = ln.x - dominantX;
+      ln.isCentered  = (ln.x > ln.pgW * 0.22) && (indentOffset > 55) && ln.text.split(/ +/).length <= 15;
+      ln.dominantX   = dominantX;
+    }
+
+    allPageData.push({ lines, pgW, pgH });
+  }
+
+  allFontSizes.sort((a, b) => a - b);
+  const medianFz = allFontSizes[Math.floor(allFontSizes.length / 2)] || 11;
+  return { allPageData, medianFz, detectedFamily, numPages };
+}
+
+/**
+ * Merges raw PDF lines into logical paragraphs BEFORE translation.
+ * Translating full paragraphs preserves pronoun/gender context.
+ *
+ * KEY DESIGN DECISIONS:
+ * 1. prevEndsSentence checks lastLineText (most recent appended line), NOT
+ *    cur.text (whole paragraph). Prevents a mid-paragraph period from
+ *    triggering a false split on the very next continuation line.
+ * 2. Page boundaries are NOT paragraph breaks — a sentence that spans a page
+ *    must continue unbroken. Cross-page lines get yGapRatio=1.0 (neutral).
+ * 3. Very short lines (≤3 words, no sentence-ending punctuation) are always
+ *    merged into the current paragraph to handle stray words.
+ */
+function buildParagraphs(allPageData, medianFz) {
+  const paragraphs = [];
+  let current      = null;
+  let lastLineText = ''; // text of the most recently appended line (not the whole para)
+  let prevLine     = null;
+
+  const SENTENCE_END_RE = /[.!?\u2026\u00bb\u201d)\]:]$/;
+  const SHORT_LINE_RE   = /^\S+(\s+\S+){0,2}$/; // 1–3 words
+
+  function flushParagraph() {
+    if (current && current.text.trim()) paragraphs.push(current);
+    current = null;
+    lastLineText = '';
+  }
+
+  for (const pageData of allPageData) {
+    for (let li = 0; li < pageData.lines.length; li++) {
+      const ln = pageData.lines[li];
+      if (!ln.text?.trim()) continue;
+
+      const isLarger  = ln.fz > medianFz * 1.15;
+      const isHeading = ln.isCentered || isLarger || (ln.fontStyle.bold && ln.fz > medianFz * 1.05);
+      const fzScale   = ln.fz / medianFz;
+
+      // Y-gap ratio relative to previous line
+      let yGapRatio = 0;
+      if (li > 0) {
+        const ref = pageData.lines[li - 1];
+        yGapRatio = Math.abs(ref.y - ln.y) / Math.max(ln.fz * 1.35, 8);
+      } else if (prevLine) {
+        // First line of new page: neutral continuation (only sentence logic can break)
+        yGapRatio = 1.0;
+      }
+
+      const isShortFragment   = !isHeading && SHORT_LINE_RE.test(ln.text.trim()) && !SENTENCE_END_RE.test(ln.text.trim());
+      const bigGap            = yGapRatio > 1.55;
+      const lastEndsSentence  = SENTENCE_END_RE.test(lastLineText.trimEnd());
+      const prevEndsSentence  = current && lastEndsSentence && yGapRatio > 0.85;
+      const prevWasHeading    = current && current.isHeading;
+      const shouldStartNew    = !current || isHeading || (bigGap && !isShortFragment) || prevEndsSentence || prevWasHeading;
+
+      if (shouldStartNew && !isShortFragment) {
+        flushParagraph();
+        current = { text: ln.text, fontStyle: ln.fontStyle, isHeading, isCentered: ln.isCentered || isLarger, fzScale, origFz: ln.fz };
+        lastLineText = ln.text;
+      } else {
+        // Merge into current paragraph
+        if (!current) {
+          current = { text: ln.text, fontStyle: ln.fontStyle, isHeading: false, isCentered: false, fzScale, origFz: ln.fz };
+        } else {
+          // Preserve hyphenated line breaks; otherwise join with a space
+          const separator = /[-\u2011]$/.test(current.text.trimEnd()) ? '' : ' ';
+          current = { ...current, text: current.text + separator + ln.text };
+        }
+        lastLineText = ln.text;
+      }
+
+      prevLine = ln;
+    }
+    // DO NOT flush at page boundaries — sentences may cross pages
+  }
+  flushParagraph();
+  return paragraphs;
+}
+
+/**
+ * Renders a new PDF from the original page dimensions, inserting translated
+ * paragraph text with proper reflow, font embedding, and page numbering.
+ */
+async function renderTranslatedPdf(origBytes, paragraphs, medianFz, translationMap, targetLang) {
+  const { PDFDocument, rgb, StandardFonts } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.esm.js');
+
+  const origDoc   = await PDFDocument.load(origBytes.slice().buffer);
+  const { width: PW, height: PH } = origDoc.getPages()[0]?.getSize() || { width: 595.2, height: 841.92 };
+
+  const outDoc = await PDFDocument.create();
+  const fonts  = await embedPdfFonts(outDoc, StandardFonts, targetLang);
+  const isRTL  = ['ar', 'fa', 'ur', 'he'].includes(targetLang);
+
+  const MARGIN_L = 72, MARGIN_R = 72, MARGIN_T = 72, MARGIN_B = 72;
+  const contentW = PW - MARGIN_L - MARGIN_R;
+  const bodyFz   = Math.min(Math.max(medianFz, 9), 12);
+
+  // Resolve translations — fall back to original text if no translation available
+  const resolvedParas = paragraphs.map(para => {
+    const translated = shouldSkip(para.text) ? null : (translationMap[para.text] || null);
+    return { ...para, displayText: (translated?.trim()) || para.text };
+  });
+
+  // Lay out paragraphs with full look-ahead to avoid mid-paragraph page breaks
+  const pageBlocks = [];
+  let curPageBlocks = [];
+  let curY = PH - MARGIN_T;
+
+  function commitPage() {
+    pageBlocks.push(curPageBlocks);
+    curPageBlocks = [];
+    curY = PH - MARGIN_T;
+  }
+  commitPage(); // seed first page
+
+  for (const para of resolvedParas) {
+    if (!para.displayText?.trim()) continue;
+
+    const style      = para.fontStyle || {};
+    const activeFont = pickFontVariant(fonts, style);
+
+    // Scale heading font sizes up; clamp body text
+    let fz;
+    if (para.isCentered && para.fzScale > 1.12)   fz = Math.min(bodyFz * para.fzScale, bodyFz * 2.0);
+    else if (para.isHeading && style.bold)          fz = Math.min(bodyFz * 1.22, 16);
+    else                                            fz = bodyFz;
+    fz = Math.round(fz * 2) / 2; // quantize to half-points
+    const lineHeight = fz * 1.65;
+
+    const wrapWidth = para.isCentered ? contentW * 0.9 : contentW;
+    const wrappedLines = wrapText(para.displayText, fz, wrapWidth, activeFont);
+
+    const topMargin    = para.isCentered ? lineHeight * 0.85 : lineHeight * 0.45;
+    const bottomMargin = para.isCentered ? lineHeight * 0.5  : 0;
+    const paraHeight   = topMargin + wrappedLines.length * lineHeight + bottomMargin;
+
+    // Page-break logic:
+    // 1. If the whole paragraph fits on a fresh page → move to fresh page.
+    // 2. If it's taller than a full page → stay and let the line loop split it,
+    //    but only if at least one line fits. If not even one line fits, move to fresh page.
+    if (curY - paraHeight < MARGIN_B) {
+      const fitsOnFresh = (PH - MARGIN_T - paraHeight) >= MARGIN_B;
+      const oneLineFits = (curY - topMargin - lineHeight) >= MARGIN_B;
+      if (fitsOnFresh || para.isCentered || !oneLineFits) commitPage();
+    }
+
+    curY -= topMargin;
+
+    for (const wline of wrappedLines) {
+      // Move to a new page before drawing if current line would fall below the margin
+      if (curY < MARGIN_B + lineHeight) commitPage();
+
+      let x;
+      if (para.isCentered) {
+        const textW = measureTextWidth(wline, fz, activeFont);
+        x = MARGIN_L + Math.max((contentW - textW) / 2, 0);
+      } else {
+        x = isRTL ? (MARGIN_L + contentW - measureTextWidth(wline, fz, activeFont)) : MARGIN_L;
+      }
+
+      curPageBlocks.push({ text: wline, x, y: curY, fz, font: activeFont, style });
+      curY -= lineHeight;
+    }
+    curY -= bottomMargin;
+  }
+  commitPage(); // flush last page
+
+  // Draw all pages
+  for (let pi = 0; pi < pageBlocks.length; pi++) {
+    const pdfPage = outDoc.addPage([PW, PH]);
+
+    for (const inst of pageBlocks[pi]) {
+      try {
+        pdfPage.drawText(inst.text, { x: inst.x, y: inst.y, size: inst.fz, font: inst.font, color: rgb(0, 0, 0) });
+
+        if (inst.style.strikethrough) {
+          const w = measureTextWidth(inst.text, inst.fz, inst.font);
+          pdfPage.drawLine({ start: { x: inst.x, y: inst.y + inst.fz * 0.32 }, end: { x: inst.x + w, y: inst.y + inst.fz * 0.32 }, thickness: Math.max(inst.fz * 0.07, 0.5), color: rgb(0, 0, 0) });
+        }
+        if (inst.style.underline) {
+          const w = measureTextWidth(inst.text, inst.fz, inst.font);
+          pdfPage.drawLine({ start: { x: inst.x, y: inst.y - inst.fz * 0.12 }, end: { x: inst.x + w, y: inst.y - inst.fz * 0.12 }, thickness: Math.max(inst.fz * 0.06, 0.4), color: rgb(0, 0, 0) });
+        }
+      } catch { /* ignore render errors for individual text items */ }
+    }
+
+    // Centered page number at bottom (only on non-empty pages)
+    if (pageBlocks[pi].length > 0) {
+      try {
+        const pgNumStr  = String(pi + 1);
+        const pgNumFz   = 9;
+        const pgNumFont = fonts.regular;
+        const pgNumW    = measureTextWidth(pgNumStr, pgNumFz, pgNumFont);
+        pdfPage.drawText(pgNumStr, { x: (PW - pgNumW) / 2, y: MARGIN_B * 0.42, size: pgNumFz, font: pgNumFont, color: rgb(0.45, 0.45, 0.45) });
+      } catch { /* ignore */ }
+    }
+  }
+
+  return outDoc.save();
+}
+
+// ── File Queue ─────────────────────────────────────────────────────────
+const fileQueue = [];  // { id, file, status: 'queued'|'running'|'done'|'err', blobs: [] }
+let queueRunning = false;
+
+function getFileIcon(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  if (ext === 'pdf')                          return '📄';
+  if (['docx', 'doc', 'odt'].includes(ext))  return '📝';
+  if (ext === 'epub')                         return '📖';
+  return '📃';
+}
+
+window.addFiles = function (fileList) {
+  for (const file of fileList) {
+    const id = 'f' + Date.now() + Math.random().toString(36).slice(2, 5);
+    fileQueue.push({ id, file, status: 'queued', blobs: [] });
+    renderFileRow(fileQueue[fileQueue.length - 1]);
+    if (file.name.toLowerCase().endsWith('.pdf')) document.getElementById('fontBar').classList.add('show');
+  }
+  document.getElementById('queueActs').style.display = 'flex';
+  document.getElementById('mainInput').value = '';
+  updateQueueSummary();
+};
+
+function renderFileRow(item) {
+  const row = document.createElement('div');
+  row.className = 'file-row';
+  row.id = 'row-' + item.id;
+  row.innerHTML = `
+    <div class="file-row-icon">${getFileIcon(item.file.name)}</div>
+    <div class="file-row-info">
+      <div class="file-row-name">${item.file.name}</div>
+      <div class="file-row-sub" id="sub-${item.id}">${(item.file.size / 1024).toFixed(0)} KB · queued</div>
+      <div class="file-row-bar"><div class="file-row-fill" id="bar-${item.id}"></div></div>
+    </div>
+    <div class="file-row-actions" id="act-${item.id}">
+      <button class="remove-btn" onclick="removeFile('${item.id}')" title="Remove">✕</button>
+    </div>`;
+  document.getElementById('fileQueue').appendChild(row);
+}
+
+window.removeFile = function (id) {
+  const idx = fileQueue.findIndex(i => i.id === id);
+  if (idx < 0 || fileQueue[idx].status === 'running') return;
+  fileQueue.splice(idx, 1);
+  document.getElementById('row-' + id)?.remove();
+  if (!fileQueue.length) {
+    document.getElementById('queueActs').style.display = 'none';
+    document.getElementById('fontBar').classList.remove('show');
+  }
+  updateQueueSummary();
+};
+
+function setRowProgressBar(id, pct) { const el = document.getElementById('bar-' + id); if (el) el.style.width = pct + '%'; }
+function setRowSubtitle(id, text)   { const el = document.getElementById('sub-' + id); if (el) el.textContent = text; }
+
+function setRowStatus(id, status) {
+  const row = document.getElementById('row-' + id);
+  if (!row) return;
+  row.className = 'file-row' +
+    (status === 'running' ? ' running' : status === 'done' ? ' done' : status === 'err' ? ' err' : '');
+}
+
+function setRowDownloadActions(id, blobs) {
+  const el = document.getElementById('act-' + id);
+  if (!el) return;
+  el.innerHTML = blobs.map((b, i) => {
+    const url = URL.createObjectURL(b.blob);
+    return `<a class="download-btn${i > 0 ? ' alt' : ''}" href="${url}" download="${b.name}">${b.label}</a>`;
+  }).join('');
+}
+
+function updateQueueSummary() {
+  const total = fileQueue.length;
+  const done  = fileQueue.filter(i => i.status === 'done').length;
+  const err   = fileQueue.filter(i => i.status === 'err').length;
+  document.getElementById('queueSummary').textContent = total
+    ? `${total} file${total !== 1 ? 's' : ''} · ${done} done${err ? ' · ' + err + ' failed' : ''}`
+    : '';
+  document.getElementById('dlAllBtn').classList.toggle('show', done > 1);
+}
+
+window.clearQueue = function () {
+  fileQueue.length = 0;
+  document.getElementById('fileQueue').innerHTML = '';
+  document.getElementById('queueActs').style.display = 'none';
+  document.getElementById('fontBar').classList.remove('show');
+  document.getElementById('dlAllBtn').classList.remove('show');
+  document.getElementById('queueSummary').textContent = '';
+};
+
+window.downloadAll = async function () {
+  try {
+    const JSZip = await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+    const zip   = new JSZip.default();
+    for (const item of fileQueue) {
+      if (item.status === 'done' && item.blobs[0]) zip.file(item.blobs[0].name, item.blobs[0].blob);
+    }
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'lingua_translated.zip';
+    a.click();
+    log('ZIP downloaded', 'ok');
+  } catch (e) {
+    log('ZIP failed, downloading individually: ' + e.message, 'w');
+    for (const item of fileQueue) {
+      if (item.status === 'done' && item.blobs[0]) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(item.blobs[0].blob);
+        a.download = item.blobs[0].name;
+        a.click();
+        await new Promise(r => setTimeout(r, 300));
+      }
+    }
+  }
+};
+
+window.runQueue = async function () {
+  if (queueRunning) return;
+  queueRunning = true;
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Processing…';
+
+  const srcLang = document.getElementById('srcLang').value;
+  const tgtLang = document.getElementById('tgtLang').value;
+  log(`Queue: ${fileQueue.length} files · ${srcLang}→${tgtLang}`, 'h');
+
+  for (const item of fileQueue) {
+    if (item.status === 'done') continue;
+    item.status = 'running';
+    setRowStatus(item.id, 'running');
+    setRowSubtitle(item.id, 'Starting…');
+    setRowProgressBar(item.id, 0);
+
+    const ext = item.file.name.split('.').pop().toLowerCase();
+    try {
+      if (ext === 'pdf') await processPdfFile(item, srcLang, tgtLang);
+      else               await processDocumentFile(item, srcLang, tgtLang);
+      item.status = 'done';
+      setRowStatus(item.id, 'done');
+      setRowProgressBar(item.id, 100);
+      log(`✓ ${item.file.name}`, 'ok');
+    } catch (e) {
+      item.status = 'err';
+      setRowStatus(item.id, 'err');
+      setRowSubtitle(item.id, 'Error: ' + e.message);
+      log(`✗ ${item.file.name}: ${e.message}`, 'e');
+    }
+    updateQueueSummary();
+  }
+
+  queueRunning = false;
+  btn.disabled = false;
+  btn.textContent = '▶ Translate';
+  updateQueueSummary();
+  log('Queue complete', 'ok');
+  setStatus('Done', true);
+};
+
+// ── Client-side post-processing: rule-based grammar fixes ──────────────
+// No API calls — fixes deterministic translation artifacts that appear
+// consistently when free MT engines translate Slavic → Latin scripts.
+function postProcessTranslations(translationMap, srcLang, tgtLang) {
+  const SLAVIC_LANGS = new Set(['ru','uk','bg','sr','pl','cs','sk','hr','sl','bs','mk']);
+  if (!SLAVIC_LANGS.has(srcLang === 'auto' ? 'ru' : srcLang)) return translationMap;
+
+  const out = {};
+  for (const [orig, trans] of Object.entries(translationMap)) {
+    if (!trans) { out[orig] = trans; continue; }
+    let t = trans;
+
+    // 1. Adjective-as-proper-noun: MT often produces "Zoroastrian" for the name "Zoroaster"
+    //    when the source had a genitive proper noun. Strip the adjectival suffix when
+    //    the word appears in an adjectival context ("called", "known as", etc.).
+    t = t.replace(/\b([A-Z][a-z]{3,})(ian|ean|an)\b/g, (match, root, suffix) => {
+      const adjectivalCtx = /(considering|called|named|known as|regarded as|as an?|being)\s+/i;
+      return adjectivalCtx.test(t.slice(0, t.indexOf(match))) ? root : match;
+    });
+
+    // 2. Capitalise first word after sentence-ending punctuation (". x" → ". X")
+    t = t.replace(/([.!?…])\s+([a-z])/g, (m, p, c) => p + ' ' + c.toUpperCase());
+
+    // 3. Remove doubled articles/prepositions ("the the", "of of", etc.)
+    t = t.replace(/\b(the|a|an|of|in|on|at|to|for|with|by|from|into|onto)\s+\1\b/gi, '$1');
+
+    // 4. Capitalise orphan conjunctions at paragraph start (fragment that was split)
+    t = t.replace(
+      /^(and|but|or|so|yet|nor|for|although|however|therefore|thus|then|after|before|while|when|because|since|if|though|even though|as|once)\s+/i,
+      m => m[0].toUpperCase() + m.slice(1)
+    );
+
+    // 5. No-op guard: very short stray fragments ("no", "yes") are already
+    //    handled by buildParagraphs' SHORT_LINE guard. Left here for clarity.
+
+    // 6. Strip bare em/en dash lines (dialogue marker with no following text)
+    t = t.replace(/^[\u2013\u2014]\s*$/, '').trim();
+
+    // 7. Remove doubled prepositions from source phrase structure
+    //    e.g. "listened to to the end" → "listened to the end"
+    t = t.replace(/\b(listened to|up to|down to|due to|as to|prior to|according to|next to|close to|related to|compared to|similar to)\s+to\b/gi, '$1');
+
+    // 8. Ensure first character is capitalised
+    if (t.length > 0) t = t[0].toUpperCase() + t.slice(1);
+
+    out[orig] = t;
+  }
+  return out;
+}
+
+/**
+ * Context-aware translation for PDF paragraphs.
+ * Translates in document order, prepending the previous paragraph as context
+ * to help the engine maintain subject/pronoun/tense continuity.
+ * Uses a rare three-em-dash separator that survives MT to split the response.
+ */
+async function translateWithContext(paragraphs, srcLang, tgtLang, onProgress) {
+  const CTX_SEP = ' \u2E3B '; // three-em dash — rare enough to survive MT
+  const CTX_MAX = 120;        // max chars of context prefix
+
+  // Warm the cache with all unique texts
+  const allTexts = paragraphs.map(p => p.text).filter(t => t && !SKIP_RE.test(t));
+  const uniqueTexts = [...new Set(allTexts)];
+  const cached = await TranslationCache.getMany(uniqueTexts, srcLang, tgtLang);
+  const xlMap  = { ...cached };
+  const needsTranslation = new Set(uniqueTexts.filter(t => !cached[t]));
+
+  log(`Context-translate: ${uniqueTexts.length} unique, ${needsTranslation.size} uncached`, 'h');
+
+  if (!needsTranslation.size) {
+    if (onProgress) onProgress(uniqueTexts.length, uniqueTexts.length);
+    return xlMap;
+  }
+
+  statsStart();
+
+  // Build context-augmented texts in document order
+  const batch = [];
+  let prevContextText = '';
+
+  for (const p of paragraphs) {
+    if (!p.text || SKIP_RE.test(p.text)) continue;
+    if (xlMap[p.text]) {
+      if (!p.isHeading) prevContextText = p.text;
+      continue;
+    }
+
+    const ctxPrefix = (!p.isHeading && prevContextText)
+      ? (prevContextText.length > CTX_MAX ? prevContextText.slice(-CTX_MAX) : prevContextText) + CTX_SEP
+      : '';
+
+    batch.push({ text: p.text, ctx: ctxPrefix, augmented: ctxPrefix + p.text });
+    if (!p.isHeading) prevContextText = p.text;
+  }
+
+  // Translate augmented texts through GT
+  const augmented     = batch.map(b => b.augmented);
+  const uniqueAugmented = [...new Set(augmented)];
+  const [gt1, gt2] = await Promise.all([
+    gtTranslateAll(uniqueAugmented, srcLang, tgtLang, 'primary'),
+    gtTranslateAll(uniqueAugmented, srcLang, tgtLang, 'secondary'),
+  ]);
+  const gtResults = { ...gt2, ...gt1 };
+
+  // Strip context prefix from each result and map back to original text
+  const newPairs = [];
+  for (const b of batch) {
+    if (xlMap[b.text]) continue;
+    const raw = gtResults[b.augmented] || '';
+    if (!raw) continue;
+
+    let val = raw;
+    if (b.ctx) {
+      const sepIdx = raw.indexOf('\u2E3B');
+      if (sepIdx >= 0) val = raw.slice(sepIdx + 1).trimStart();
+    }
+    val = val.trim();
+    if (val && val !== b.text) { xlMap[b.text] = val; newPairs.push([b.text, val]); }
+  }
+
+  // Phase 2: fallback providers for anything GT missed (context less critical here)
+  const stillMissing = batch.filter(b => !xlMap[b.text]).map(b => b.text);
+  if (stillMissing.length) {
+    const [ltRes, mmRes, lvRes] = await Promise.all([
+      ltTranslateAll(stillMissing, srcLang, tgtLang),
+      mmTranslateAll(stillMissing, srcLang, tgtLang),
+      lingvaTranslateAll(stillMissing, srcLang, tgtLang),
+    ]);
+    Object.assign(xlMap, ltRes, mmRes, lvRes);
+    for (const t of stillMissing) { if (xlMap[t] && xlMap[t] !== t) newPairs.push([t, xlMap[t]]); }
+  }
+
+  statsStop();
+  if (newPairs.length) TranslationCache.setMany(newPairs, srcLang, tgtLang);
+  if (onProgress) onProgress(uniqueTexts.length, uniqueTexts.length);
+  log(`Context-translate done: ${Object.keys(xlMap).length}/${uniqueTexts.length}`, 'ok');
+  return xlMap;
+}
+
+// ── PDF File Processor ─────────────────────────────────────────────────
+async function processPdfFile(item, srcLang, tgtLang) {
+  const id = item.id;
+  setRowSubtitle(id, 'Reading…');
+  setRowProgressBar(id, 3);
+
+  const origBytes = new Uint8Array(await item.file.arrayBuffer());
+  const pdfjsLib  = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+
+  const pdfDoc = await pdfjsLib.getDocument({ data: origBytes.slice() }).promise;
+  setRowSubtitle(id, `Parsing ${pdfDoc.numPages} pages…`);
+  setRowProgressBar(id, 8);
+
+  const { allPageData, medianFz, detectedFamily, numPages } = await extractPdfPages(pdfDoc);
+  autoSelectFont(detectedFamily, tgtLang);
+
+  // Build paragraphs BEFORE translation to preserve pronoun/gender context
+  const paragraphs = buildParagraphs(allPageData, medianFz);
+  setRowSubtitle(id, `Translating ${paragraphs.length} paragraphs…`);
+  setRowProgressBar(id, 15);
+
+  const t0 = performance.now();
+  const translationMap = await translateWithContext(paragraphs, srcLang, tgtLang, (done, total) => {
+    setRowProgressBar(id, 15 + Math.round((done / total) * 65));
+    setRowSubtitle(id, `Translating ${done}/${total}…`);
+  });
+  setRowProgressBar(id, 82);
+  setRowSubtitle(id, 'Rendering…');
+
+  const polishedMap = postProcessTranslations(translationMap, srcLang, tgtLang);
+  const outBytes    = await renderTranslatedPdf(origBytes, paragraphs, medianFz, polishedMap, tgtLang);
+
+  const baseName = item.file.name.replace(/\.pdf$/i, '');
+  const elapsed  = Math.round(performance.now() - t0);
+  item.blobs = [
+    { blob: new Blob([outBytes],   { type: 'application/pdf' }), name: baseName + '_translated.pdf', label: '⬇ Translated' },
+    { blob: new Blob([origBytes],  { type: 'application/pdf' }), name: baseName + '_original.pdf',   label: '⬇ Original'   },
+  ];
+  setRowSubtitle(id, `Done · ${numPages}p · ${Object.keys(translationMap).length} paragraphs · ${(elapsed / 1000).toFixed(1)}s`);
+  setRowDownloadActions(id, item.blobs);
+}
+
+// ── DOC / EPUB / TXT File Processor ───────────────────────────────────
+async function processDocumentFile(item, srcLang, tgtLang) {
+  const id  = item.id;
+  const ext = item.file.name.split('.').pop().toLowerCase();
+  setRowSubtitle(id, 'Parsing…');
+  setRowProgressBar(id, 5);
+
+  // Extract raw text from the file
+  let rawText = '';
+  if (ext === 'txt') {
+    rawText = await item.file.text();
+  } else if (['docx', 'doc', 'odt'].includes(ext)) {
+    const mammoth = await import('https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js');
+    const result  = await mammoth.extractRawText({ arrayBuffer: await item.file.arrayBuffer() });
+    rawText = result.value;
+  } else if (ext === 'epub') {
+    rawText = await extractEpubText(item.file);
+  } else {
+    rawText = await item.file.text();
+  }
+
+  if (!rawText.trim()) throw new Error('No text extracted');
+  setRowProgressBar(id, 15);
+
+  // Split into paragraphs, deduplicate for translation, then re-expand
+  const allParas   = rawText.split(/\n{2,}/).map(p => p.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const uniqueParas = [...new Set(allParas.filter(p => !SKIP_RE.test(p)))];
+  setRowSubtitle(id, `Translating ${uniqueParas.length} paragraphs…`);
+  setRowProgressBar(id, 20);
+
+  const t0 = performance.now();
+  const translationMap = await translateAll(uniqueParas, srcLang, tgtLang, (done, total) => {
+    setRowProgressBar(id, 20 + Math.round((done / total) * 65));
+    setRowSubtitle(id, `Translating ${done}/${total}…`);
+  });
+  setRowProgressBar(id, 88);
+  setRowSubtitle(id, 'Building output…');
+
+  const translatedParas = allParas.map(p => shouldSkip(p) ? p : (translationMap[p] || p));
+  const outText = translatedParas.join('\n\n');
+  const baseName = item.file.name.replace(/\.[^.]+$/, '');
+  let outBlob, outName;
+
+  if (['docx', 'doc', 'odt'].includes(ext)) {
+    try {
+      const { Document, Packer, Paragraph, TextRun } = await import('https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js');
+      const doc = new Document({ sections: [{ children: translatedParas.map(p => new Paragraph({ children: [new TextRun(p)] })) }] });
+      outBlob = await Packer.toBlob(doc);
+      outName = baseName + '_translated.docx';
+    } catch {
+      // If docx build fails, fall back to plain text
+      outBlob = new Blob([outText], { type: 'text/plain;charset=utf-8' });
+      outName  = baseName + '_translated.txt';
+    }
+  } else {
+    outBlob = new Blob([outText], { type: 'text/plain;charset=utf-8' });
+    outName  = baseName + '_translated.txt';
+  }
+
+  const elapsed = Math.round(performance.now() - t0);
+  item.blobs = [{ blob: outBlob, name: outName, label: '⬇ Download' }];
+  setRowSubtitle(id, `Done · ${allParas.length} paras · ${(elapsed / 1000).toFixed(1)}s`);
+  setRowDownloadActions(id, item.blobs);
+}
+
+// ── EPUB Text Extractor ────────────────────────────────────────────────
+async function extractEpubText(file) {
+  const JSZip = await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+  const zip   = await JSZip.default.loadAsync(await file.arrayBuffer());
+
+  const containerXml = await zip.file('META-INF/container.xml')?.async('text');
+  if (!containerXml) throw new Error('Not a valid EPUB');
+
+  const opfPath = containerXml.match(/full-path="([^"]+\.opf)"/)?.[1];
+  if (!opfPath) throw new Error('No OPF');
+
+  const opfXml  = await zip.file(opfPath)?.async('text');
+  const opfDir  = opfPath.includes('/') ? opfPath.replace(/\/[^/]+$/, '/') : '';
+  const idrefs  = [...opfXml.matchAll(/idref="([^"]+)"/g)].map(m => m[1]);
+  const manifest = {};
+  for (const m of opfXml.matchAll(/<item[^>]+id="([^"]+)"[^>]+href="([^"]+)"/g)) manifest[m[1]] = m[2];
+
+  let allText = '';
+  for (const idref of idrefs) {
+    const href = manifest[idref];
+    if (!href) continue;
+    const html = await zip.file(opfDir + href)?.async('text') || await zip.file(href)?.async('text') || '';
+    // Strip HTML tags and decode basic HTML entities
+    allText += html
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g,  ' ')
+      .replace(/&amp;/g,   '&')
+      .replace(/&lt;/g,    '<')
+      .replace(/&gt;/g,    '>')
+      .replace(/&#\d+;/g,  ' ')
+      .replace(/\s+/g,     ' ')
+      + '\n\n';
+  }
+  return allText;
+}
+
+// ── Drop Zone Events ───────────────────────────────────────────────────
+const dropZone = document.getElementById('mainDz');
+
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop',      e  => {
+  e.preventDefault();
+  dropZone.classList.remove('over');
+  const validFiles = [...e.dataTransfer.files].filter(f => /\.(pdf|docx|doc|odt|epub|txt)$/i.test(f.name));
+  if (validFiles.length) addFiles(validFiles);
+});
+</script>
+</body>
+</html>
